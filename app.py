@@ -1001,6 +1001,19 @@ async def serve_gui():
 
         function showError(msg) {
             const alert = document.getElementById('errorAlert');
+            alert.style.background = 'rgba(239, 68, 68, 0.1)';
+            alert.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            alert.style.color = '#ef4444';
+            document.getElementById('errorText').innerText = msg;
+            alert.style.display = 'flex';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showSuccess(msg) {
+            const alert = document.getElementById('errorAlert');
+            alert.style.background = 'rgba(16, 185, 129, 0.1)';
+            alert.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+            alert.style.color = '#10b981';
             document.getElementById('errorText').innerText = msg;
             alert.style.display = 'flex';
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1228,9 +1241,18 @@ async def serve_gui():
                 a.click();
                 a.remove();
                 window.URL.revokeObjectURL(url);
+
+                const btn = document.querySelector('.btn-redact');
+                btn.innerHTML = `Redact & Download Document`;
+                btn.disabled = false;
+                
+                showSuccess("Success! Your redacted document has been downloaded.");
             })
             .catch(err => {
                 showError(err.message);
+                const btn = document.querySelector('.btn-redact');
+                btn.innerHTML = `Redact & Download Document`;
+                btn.disabled = false;
             });
         }
 
