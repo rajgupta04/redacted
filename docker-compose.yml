@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  pii-redactor:
+    build: .
+    image: piiredactor.azurecr.io/pii-redactor:latest
+    container_name: pii_redactor_app
+    ports:
+      - "80:80"
+    environment:
+      # FastAPI Environment Variables
+      - WORKERS=4
+      - PORT=80
+      # Azure App Service will set WEBSITES_PORT automatically, but we fallback to 80
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      # Maps local tmp directory to container tmp directory for docx caching
+      - ./tmp:/tmp

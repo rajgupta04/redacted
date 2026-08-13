@@ -1,0 +1,405 @@
+================================================================================
+PII REDACTION — EVALUATION REPORT
+================================================================================
+
+OVERALL METRICS
+----------------------------------------
+  Precision : 17.23%
+  Recall    : 100.00%
+  F1 Score  : 29.40%
+  TP=107  FP=514  FN=0
+
+PER-TYPE METRICS
+--------------------------------------------------------------------------------
+Type                  Precision     Recall         F1    TP    FP    FN
+--------------------------------------------------------------------------------
+PERSON                  100.00%    100.00%    100.00%    28     0     0
+EMAIL                    65.00%    100.00%     78.79%    26    14     0
+PHONE                    47.62%    100.00%     64.52%    20    22     0
+ORG                     100.00%    100.00%    100.00%    28     0     0
+ADDRESS                 100.00%    100.00%    100.00%     3     0     0
+CIN                     100.00%    100.00%    100.00%     1     0     0
+URL                     100.00%    100.00%    100.00%     1     0     0
+OTHER                     0.00%      0.00%      0.00%     0   478     0
+
+FALSE NEGATIVES (Missed PII — potential privacy leaks)
+--------------------------------------------------------------------------------
+  None — all ground truth PII was detected!
+
+FALSE POSITIVES (Over-redacted — non-PII marked as PII)
+--------------------------------------------------------------------------------
+  [EMAIL]
+    ✗ mbradford@example.net
+    ✗ jwilson@example.net
+    ✗ sking@example.net
+    ✗ vgeorge@example.com
+    ✗ anthonyjoseph@example.org
+    ✗ charles91@example.org
+    ✗ fbradley@example.net
+    ✗ smithlawrence@example.org
+    ✗ charles97@example.com
+    ✗ teresagreen@example.org
+    ✗ juliehayden@example.com
+    ✗ rgomez@example.net
+    ✗ scottlori@example.net
+    ✗ julie07@example.net
+  [OTHER]
+    ✗ Kanchenjunga Family Trust &
+    ✗ Ganesh Prasad
+    ✗ Integrated Power Development Scheme
+    ✗ SCSB
+    ✗ Justin Smith
+    ✗ Capital Employed
+    ✗ Bandra Kurla Complex, Bandra (E) Mumbai – 400 051, Maharashtra, India
+    ✗ Adriana Snyder
+    ✗ Syndicate/Sub Syndicate
+    ✗ United States Securities Act
+    ✗ EVEREST FAMILY TRUST
+    ✗ Shanti Gopalkrishnan
+    ✗ Wells Squares Suite
+    ✗ Hamilton LLC
+    ✗ Sangeeta Ramprasad Rai
+    ✗ Bid cum Application Forms
+    ✗ Securities and Exchange Board of India (Alternative Investment Funds) Regulations
+    ✗ ICAI
+    ✗ Darius Lozano
+    ✗ Transit Insurance
+    ... and 458 more
+  [PHONE]
+    ✗ Hingne Tare & Associates Flat No. 102, Sai Complex Shaniwar Peth, Pune – 411 030 Maharashtra, India
+    ✗ +91 69594 92910
+    ✗ Bandra East, Mumbai – 400 051 Maharashtra, India
+    ✗ Pune 411 045 Maharashtra, India
+    ✗ S. no. 245/ 104, Pushpakamal, Deccan Gymkhana Society, lane no. 3 Prabhat Road, opposite PYC basketball court, Deccan Gymkhana, Pune – 411 004 Maharashtra, India
+    ✗ 801 - 804, Wing A, Building No 3, Inspire BKC, G Block, Bandra Kurla Complex, Bandra East, Mumbai 400051, Maharashtra, India
+    ✗ +91 57 0717 7353
+    ✗ +91 06547 30222
+    ✗ Signature Building, Bhandarkar road Shivaji Nagar, Pune – 411 004 Maharashtra, India
+    ✗ +91 41 4208 2688
+    ✗ +91 56 9292 7865
+    ✗ Bund Garden Road, Pune – 411 001 Maharashtra, India
+    ✗ +91 3 34 8690662
+    ✗ +91 54657 71106
+    ✗ +91 60796 67307
+    ✗ +91 19 8988 7744
+    ✗ PCNTDA Green Building Block A 1st and 2nd floor Near Akurdi Railway Station Akurdi, Pune – 411 044 Maharashtra, India
+    ✗ Koregaon Park, Pune – 411 001 Maharashtra, India
+    ✗ +91 19732 34396
+    ✗ 022-68052182
+    ... and 2 more
+
+CONSISTENCY CHECK (same PII → same fake replacement)
+--------------------------------------------------------------------------------
+Original PII                                   Occurrences Replacement                    Consistent
+----------------------------------------------------------------------------------------------------
+Hegde                                                  195 Mann-Galloway                       ✓ YES
+ICDR                                                   136 Rogers, Hall and Diaz               ✓ YES
+KUSHAL HEGDE                                           131 Lauren Williams                     ✓ YES
+Kushal Hegde                                           131 Lauren Williams                     ✓ YES
+Private Limited                                         83 Pena and Sons                       ✓ YES
+Designated                                              58 Mayo PLC                            ✓ YES
+Non-Institutional Portion                               48 Johnson, Huffman and Castro         ✓ YES
+Kushal Subbayya Hegde                                   44 Nancy Conner                        ✓ YES
+KUSHAL SUBBAYYA HEGDE                                   44 Nancy Conner                        ✓ YES
+Rajesh Kushal Hegde                                     42 Stephanie Parker                    ✓ YES
+RAJESH KUSHAL HEGDE                                     42 Stephanie Parker                    ✓ YES
+Rohit Kushal Hegde                                      41 Michelle Perez                      ✓ YES
+Fresh                                                   39 Adams, Johnson and Santana          ✓ YES
+Pushpa Kushal Hegde                                     38 Sarah Foley                         ✓ YES
+PUSHPA KUSHAL HEGDE                                     38 Sarah Foley                         ✓ YES
+Manufacturing Facilities                                35 Mccormick, Powers and Fitzpat       ✓ YES
+SALE OF                                                 34 Bailey Ltd                          ✓ YES
+post-Offer                                              33 Smith, Guzman and Castaneda         ✓ YES
+Life Insurance Companies and Pension Funds              33 Navarro and Sons                    ✓ YES
+Key Managerial                                          33 Annette Morales                     ✓ YES
+E-MAIL                                                  31 Murphy Ltd                          ✓ YES
+SCSB                                                    31 Horton Inc                          ✓ YES
+Key Managerial Personnel                                30 Lowe, Rasmussen and Wilson          ✓ YES
+Rakhi Girija Shetty                                     29 Chaney and Sons                     ✓ YES
+the Book Building Process                               28 449 Christopher Rue, South An       ✓ YES
+inter alia                                              26 Kim, Scott and Cook                 ✓ YES
+UPI Bidder                                              26 Shaffer Ltd                         ✓ YES
+Annapurna Family Trust                                  25 Ramos and Sons                      ✓ YES
+Dhaulagiri Family Trust                                 25 Frey Inc                            ✓ YES
+KANCHENJUNGA FAMILY TRUST                               25 Warren-Garcia                       ✓ YES
+ANNAPURNA FAMILY TRUST                                  25 Ramos and Sons                      ✓ YES
+DHAULAGIRI FAMILY TRUST                                 25 Frey Inc                            ✓ YES
+EVEREST                                                 25 Garcia Ltd                          ✓ YES
+Kanchenjunga Family Trust                               25 Warren-Garcia                       ✓ YES
+Broad Family Trust                                      24 Garcia-Delacruz                     ✓ YES
+Makalu Family Trust                                     24 Dudley-Newman                       ✓ YES
+SCSBs                                                   24 Wilson-Hall                         ✓ YES
+Marathi                                                 24 Beard, Lindsey and Mckee            ✓ YES
+BROAD FAMILY TRUST                                      24 Garcia-Delacruz                     ✓ YES
+MAKALU FAMILY TRUST                                     24 Dudley-Newman                       ✓ YES
+EXCHANGE BOARD OF INDIA                                 24 Chambers, White and Carson          ✓ YES
+Cap Price                                               23 Darius Lozano                       ✓ YES
+Weighted                                                21 Robinson LLC                        ✓ YES
+Supa Facility                                           21 Ross, Barker and Holmes             ✓ YES
+Designated Stock Exchange                               21 Perry Group                         ✓ YES
+Waterloo Industrial Park VI Private Limited             20 Meyer-Shannon                       ✓ YES
+Non-Institutional Investors                             20 Vargas LLC                          ✓ YES
+Offer Closing Date                                      20 Mccoy, Stark and Jones              ✓ YES
+Sons                                                    19 Dawson, Walls and Cline             ✓ YES
+Offered Shares                                          18 Murphy LLC                          ✓ YES
+Bid/Offer Closing Date                                  18 Tran-Benson                         ✓ YES
+Designated Intermediaries                               17 Hunter, Nichols and Stevens         ✓ YES
+Everest Family Trust                                    16 Hunt, Jones and Mack                ✓ YES
+pre-Offer                                               16 Larson, Meza and Jones              ✓ YES
+Securities and Exchange Board of India                  16 Brown-Mcgee                         ✓ YES
+EVEREST FAMILY TRUST                                    16 Hunt, Jones and Mack                ✓ YES
+Pre-Offer                                               16 Larson, Meza and Jones              ✓ YES
+KSH INTERNATIONAL LIMITED                               15 Rosales-Smith                       ✓ YES
+KSH International Limited                               15 Rosales-Smith                       ✓ YES
+Bonus                                                   15 Holland-Sullivan                    ✓ YES
+Kirtane & Pandit                                        15 Alvarez and Sons                    ✓ YES
+COLLECTIVELY                                            15 Francis, Washington and Lee         ✓ YES
+Sponsor Banks                                           15 Butler PLC                          ✓ YES
+UPI ID                                                  14 Rivera-Garcia                       ✓ YES
+Reliance                                                13 Harris and Sons                     ✓ YES
+Bonus Issue                                             12 Brown LLC                           ✓ YES
+Kirtane & Pandit LLP                                    12 King-Lee                            ✓ YES
+kshinternational.ipo@in.mpms.mufg.com                   12 smithlawrence@example.org           ✓ YES
+Loksatta                                                12 Johnson-Wilson                      ✓ YES
+Jansatta                                                12 Cox Inc                             ✓ YES
+Financial Express                                       12 Harris-Bennett                      ✓ YES
+EQUITY SHARE CAPITAL OF OUR COMPANY                     12 Espinoza, Dawson and Thomas         ✓ YES
+Mutual Funds, Life Insurance Companies and P            11 Howell-Trevino                      ✓ YES
+Registered Brokers                                      11 Rice, West and Rodgers              ✓ YES
+www.sebi.gov                                            11 www.macias-clements.com             ✓ YES
+Qualified Institutional Buyers                          11 Gill PLC                            ✓ YES
+Issue of Capital                                        11 Fleming and Sons                    ✓ YES
+National Stock Exchange of India Limited                11 Reed, Freeman and Riley             ✓ YES
+BSE Limited                                             11 Long, Cannon and Powell             ✓ YES
+Kanchenjunga Family Trust and Waterloo Indus            10 White-Acosta                        ✓ YES
+Split of Equity Shares                                  10 Lynch, Rogers and Hall              ✓ YES
+Abhijit Diwan                                           10 Chelsea Kelley                      ✓ YES
+Kishan Rastogi                                          10 Taylor Luna                         ✓ YES
+HDFC Bank Limited                                       10 Martinez-Leonard                    ✓ YES
+ICICI Securities Limited                                 9 Obrien Group                        ✓ YES
++91 81081 14949                                          9 +91 54657 71106                     ✓ YES
+Monitoring Agency                                        9 Norton-French                       ✓ YES
+Basis of Allotment                                       9 Nguyen-Edwards                      ✓ YES
+Bankers                                                  9 Miller, Ramsey and Washington       ✓ YES
+Specialized                                              9 Bowen, Short and Carter             ✓ YES
+Village Birdewadi                                        8 Turner Inc                          ✓ YES
+Proposed Capital Expenditure                             8 Hester-Evans                        ✓ YES
+ksh@icicisecurities.com                                  8 vgeorge@example.com                 ✓ YES
++91 22 6807 7100                                         8 +91 19 8988 7744                    ✓ YES
+ICDR Master Circular                                     8 Strickland, Bates and Mitchel       ✓ YES
+UPI Circulars                                            8 Nixon Ltd                           ✓ YES
+EMIS                                                     8 Hall-Jimenez                        ✓ YES
+Short Term Bank Facilities                               8 Gibson and Sons                     ✓ YES
+Sarthak Malvadkar                                        7 Kim Cohen                           ✓ YES
+CareEdge Research                                        7 Scott LLC                           ✓ YES
+Indian Accounting Standard                               7 Frederick, Burton and Gross         ✓ YES
+Nuvama Wealth Management Limited                         7 Miranda, Mitchell and Rodrigu       ✓ YES
+Soumavo Sarkar                                           7 Ashley Stuart                       ✓ YES
+Lokesh Shah                                              7 Mr. Michael White                   ✓ YES
+www.nseindia.com                                         7 www.case.net                        ✓ YES
+www.bseindia.com                                         7 www.anderson.info                   ✓ YES
+Lokesh Shah/ Soumavo Sarkar                              7 Thompson Group                      ✓ YES
+Anchor Investor Application Form                         7 Wells, Lowe and Page                ✓ YES
+Rajesh Hegde                                             7 Shawn Diaz                          ✓ YES
+I-Sec                                                    7 Christensen, Russell and Morr       ✓ YES
+CARE Analytics and Advisory Private Limited              6 Garrett-Craig                       ✓ YES
+Care Analytics and Advisory Private Limited              6 Garrett-Craig                       ✓ YES
+Independent Directors                                    6 Richardson Group                    ✓ YES
+ksh.ipo@nuvama.com                                       6 sking@example.net                   ✓ YES
+customercare@icicisecurities.com                         6 rgomez@example.net                  ✓ YES
+www.icicisecurities.com                                  6 www.reid.com                        ✓ YES
+Formerly Link Intime India Private Limited               6 Walker Inc                          ✓ YES
+MUFG Intime India Private Limited                        6 Johnson-Powers                      ✓ YES
+post-Offer Equity Share                                  6 Wright Group                        ✓ YES
+post-Offer Equity                                        6 Robles and Sons                     ✓ YES
+Montreal Business Centre                                 5 Bird-Chapman                        ✓ YES
+Capital Employed                                         5 Clark and Sons                      ✓ YES
+Indian Rupees                                            5 Clark-Brown                         ✓ YES
+Fraud                                                    5 Peterson-Santiago                   ✓ YES
+G Block                                                  5 8730 Whitaker Junctions Apt.        ✓ YES
+Shanti Gopalkrishnan                                     5 Steven Moore                        ✓ YES
+ICICI Bank Limited                                       5 Green-Spencer                       ✓ YES
+ELIGIBILITY                                              5 Jones Inc                           ✓ YES
+BID/OFFER CLOSES ON(2                                    5 Harris-Neal                         ✓ YES
+Designated CDP Locations                                 5 Brandt-Thompson                     ✓ YES
+Designated RTA Locations                                 5 Durham-Cummings                     ✓ YES
+Non-Resident                                             5 Mccoy, Santos and Miller            ✓ YES
+Foreign Exchange Management                              5 Torres, Underwood and Lin           ✓ YES
+Market Data and Currency of Presentation                 4 Hayes-Jones                         ✓ YES
+Market Data and Currency of                              4 Johnson, Smith and Cherry           ✓ YES
+COGS                                                     4 Watkins, Roberts and Young          ✓ YES
+IPO Committee                                            4 Howard, Melendez and Valdez         ✓ YES
+www.nuvama.com                                           4 www.harris-smith.info               ✓ YES
+www.hdfcbank.com                                         4 www.robinson.com                    ✓ YES
+Bid cum Application Forms                                4 Johnson Group                       ✓ YES
+ICICI Venture House, Appasaheb Marathe Marg,             4 035 Lindsay Point Suite 538,        ✓ YES
+Independent Chartered Engineer                           4 Bush-Mcgrath                        ✓ YES
+Plot No                                                  4 Garner PLC                          ✓ YES
+Escrow Collection Bank                                   4 Collins-Johnson                     ✓ YES
+NPCI                                                     4 Taylor Group                        ✓ YES
+Karunakar Hegde                                          4 Terry Turner                        ✓ YES
+Rohit Hegde                                              4 Roberta Parsons                     ✓ YES
+Total Chakan Unit                                        4 Campbell, Norman and Tucker         ✓ YES
+Provident Fund                                           4 Parrish, Barber and Koch            ✓ YES
+U28129PN1979PLC141032                                    3 K11982TN2020PTC936362               ✓ YES
+KSH International Private Limited                        3 Burns-Gonzalez                      ✓ YES
+Bhandary Metal Extrusion Private Limited                 3 Davis, Davis and Palmer             ✓ YES
+cs.connect@kshinternational.com                          3 charles91@example.org               ✓ YES
+Financial Data                                           3 Carey, Hodges and Ross              ✓ YES
+ICAI                                                     3 Harrell-Gonzales                    ✓ YES
+Amod Joshi                                               3 Jason Dawson                        ✓ YES
+Sandesh Bhagwat                                          3 Yolanda Castillo                    ✓ YES
+Care Ratings Limited                                     3 Bonilla, Jackson and Hicks          ✓ YES
+Transit Insurance                                        3 Evans-Ortiz                         ✓ YES
++ 91 20 45053237                                         3 +91 3 34 8690662                    ✓ YES
++91 22 40094400                                          3 +91 43 58424660                     ✓ YES
+customerservice.mb@nuvama.com                            3 julie07@example.net                 ✓ YES
+www.in.mpms                                              3 www.mclean.com                      ✓ YES
+FIG-OPS Department                                       3 Clark, Merritt and White            ✓ YES
+Next to Kanjurmarg Railway Station, Kanjurma             3 03904 Brian Shore Apt. 736, P       ✓ YES
++91 22 30752914                                          3 +91 83 70690049                     ✓ YES
++91 22 30752928                                          3 +91 37 19485071                     ✓ YES
++91 22 30752929                                          3 +91 15 78744101                     ✓ YES
+pravin.teli2@hdfcbank.com                                3 bellshannon@example.net             ✓ YES
+tushar.gavankar@hdfcbank.com                             3 davenportmike@example.net           ✓ YES
+eric.bacha@hdfcbank.com                                  3 woodjessica@example.net             ✓ YES
+sachin.gawade@hdfcbank.com                               3 ylutz@example.com                   ✓ YES
+siddharth.jadhav@hdfcbank.com                            3 kgreen@example.org                  ✓ YES
+Tushar Gavankar                                          3 Douglas English                     ✓ YES
+Siddharth Jadhav                                         3 Dennis Fernandez                    ✓ YES
+Pravin Teli                                              3 Alex Lewis                          ✓ YES
+Sachin Gawade                                            3 Robert Meyers                       ✓ YES
+Eric Bacha                                               3 Michael Johnson                     ✓ YES
+L65920MH1994PLC080618                                    3 T10704TN1995GAP294728               ✓ YES
+www.icicibank.com                                        3 www.horton.com                      ✓ YES
+https://www.sebi.gov                                     3 www.mann-warner.com                 ✓ YES
+CARE Ratings Limited                                     3 Bonilla, Jackson and Hicks          ✓ YES
+Memorandum of Association                                3 Knapp Group                         ✓ YES
+Non-Institutional Investors and                          3 Farrell, Long and Neal              ✓ YES
+OPENS                                                    3 Velazquez Ltd                       ✓ YES
+Non-Executive                                            3 Ruiz and Sons                       ✓ YES
+SCSB Branches                                            3 Banks PLC                           ✓ YES
+Designated Date                                          3 Fields-Freeman                      ✓ YES
+UPI Mandate Request                                      3 Vance-Hancock                       ✓ YES
+FVCI                                                     3 Meadows, Turner and Miranda         ✓ YES
+IATF                                                     3 Stone, Allen and Turner             ✓ YES
+Reserve Bank of India                                    3 Hooper Group                        ✓ YES
+Waterloo Motors                                          3 Harris-Henry                        ✓ YES
+Kushal Hegde*^&                                          3 Sanchez, Myers and Hernandez        ✓ YES
+Long Term Bank Facilities                                3 Graham PLC                          ✓ YES
+AUTHORISED SHARE CAPITAL(1                               3 Gardner, Joyce and Gonzalez         ✓ YES
+Bid/Offer Closing Day                                    2 Lang-Johnson                        ✓ YES
+Offer Related Terms                                      2 Jones, Carlson and Alexander        ✓ YES
+United States Dollars                                    2 Burton, Smith and Wu                ✓ YES
+Indian Standard Time                                     2 Gibbs-Parker                        ✓ YES
+Ganesh Prasad                                            2 Hoffman, Levy and Garcia            ✓ YES
+Ministry of Commerce and Industry, Governmen             2 Nunez and Sons                      ✓ YES
+Ajay Shriram Patil                                       2 Sara Phillips                       ✓ YES
+Dinesh Hirachand Munot                                   2 Carney, Pacheco and Brown           ✓ YES
+KSH Infra Park IV Private Limited                        2 Hickman, Brown and Watson           ✓ YES
+Waterloo Industrial Park IX B Private Limite             2 Miller-Walker                       ✓ YES
+Waterloo Industrial Park IX Private Limited              2 Pierce Ltd                          ✓ YES
+Waterloo Industrial Park VIII Private Limite             2 Adams Group                         ✓ YES
+Waterloo Industrial Park V Private Limited               2 Sanford Group                       ✓ YES
+Waterloo Industrial Park IV Private Limited              2 Howard, Davis and Kerr              ✓ YES
+Waterloo Industrial Park III Private Limited             2 Reese-Howard                        ✓ YES
+Waterloo Industrial Park II Private Limited              2 Quinn-Robinson                      ✓ YES
+Waterloo Industrial Park I Private Limited               2 Nash, Daugherty and Lewis           ✓ YES
+Kushal Motors and Electricals Private Limite             2 Strickland, Ross and Arnold         ✓ YES
+KSH Integrated Logistics Private Limited                 2 Munoz Ltd                           ✓ YES
+KSH Distriparks Private Limited                          2 Harmon, Curtis and Hopkins          ✓ YES
+KSH Infra Park VI Private Limited                        2 Castaneda, Santos and Turner        ✓ YES
+KSH Project Management Services Private Limi             2 Garcia Group                        ✓ YES
+Waterloo Motors Private Limited                          2 Baker-Flores                        ✓ YES
+Pushpa Hegde                                             2 Carl Anderson                       ✓ YES
+Company KSH International Limited                        2 Graves and Sons                     ✓ YES
+Village Birdewadi Chakan                                 2 Hamilton, Floyd and Rosario         ✓ YES
+Capital Market Division                                  2 Johnson-Wolfe                       ✓ YES
+Varun Badai                                              2 Kimberly Deleon                     ✓ YES
+Ipocmg@icicibank.com                                     2 lisaanderson@example.net            ✓ YES
+022-68052182                                             2 67545368264                         ✓ YES
+163, 5th Floor, H.T.Parekh Marg Backbay Recl             2 73826 Frederick Brook Suite 5       ✓ YES
+L65190GJ1994PLC021012                                    2 G13895MH1985PTC884172               ✓ YES
+www.nseindia.com/products/content/equities/i             2 www.cruz.info                       ✓ YES
+Lalit Muljibhai Sarvaiya                                 2 Oconnell, Ford and Davis            ✓ YES
+Gopal House                                              2 7143 Williamson Freeway Suite       ✓ YES
+parag.pansare@kirtanepandit.com                          2 grahammary@example.org              ✓ YES
+Sarthak Malvadkar Company                                2 Long-Thompson                       ✓ YES
+Nuvama	Wealth Management Limited                         2 Winters-Gomez                       ✓ YES
++91 22 4009 4400                                         2 +91 56 9292 7865                    ✓ YES
+ICICI	Securities Limited                                 2 Coleman-Jackson                     ✓ YES
+BID/OFFE R                                               2 Whitaker, Gonzalez and Patter       ✓ YES
+801 - 804, Wing A, Building No 3, Inspire BK             2 1166 Davis Lights Apt. 299, M       ✓ YES
+C-101, Embassy 247, 1st Floor, L B S Marg, V             2 959 Wells Squares Suite 914,        ✓ YES
+Rohit Branch                                             2 Thompson LLC                        ✓ YES
+Rakhi Branch                                             2 Galloway, Buchanan and Stark        ✓ YES
+Waterloo Industrial Park IX A Private                    2 Jones Ltd                           ✓ YES
+Independent Director(s                                   2 James, Thomas and Gomez             ✓ YES
+Remuneration Committee                                   2 Williams, Smith and Smith           ✓ YES
+Non-Independent                                          2 Saunders, Gutierrez and David       ✓ YES
+Allotted to Anchor Investors                             2 Anthony-Moore                       ✓ YES
+Nuvama Wealth Management Limited and ICICI S             2 Huang-Williams                      ✓ YES
+Designated SCSB Branches                                 2 Waters Ltd                          ✓ YES
+Fraudulent Borrower                                      2 Barry LLC                           ✓ YES
+Monitoring Agency Agreement                              2 Lane-Heath                          ✓ YES
+Red Herring Prospectus/                                  2 Brown-Riley                         ✓ YES
+International Automotive Task Force                      2 Woods Group                         ✓ YES
+Companies (Indian Accounting Standards) Rule             2 Robinson-Butler                     ✓ YES
+VCF Regulations                                          2 Burton-Rice                         ✓ YES
+Pradhan Mantri                                           2 Nguyen, Wright and Golden           ✓ YES
+B.  Non-GAAP Measures                                    2 Karen Strong                        ✓ YES
+Ajay Menon                                               2 Leslie Holmes                       ✓ YES
+Karunakar Hegde HUF                                      2 Brittany Hale                       ✓ YES
+Shubhkamal Leasing and Investment Private Li             2 Evans-Nelson                        ✓ YES
+Vijay Hegde                                              2 Kathleen Gardner                    ✓ YES
+Total Taloja                                             2 Miller, Wong and Quinn              ✓ YES
+Labour Welfare                                           2 Cook-Bennett                        ✓ YES
+Deccan Gymkhana Society                                  2 22123 Herring Pines Suite 784       ✓ YES
+
+SAMPLE REPLACEMENT MAPPING (Original → Fake)
+--------------------------------------------------------------------------------
+  & Goods and Services Tax                       → Wright-Arellano
+  + 91 20 4505 3237                              → +91 7 98 0360 582
+  + 91 20 45053237                               → +91 3 34 8690662
+  + 91 20 6729 5100                              → +91 1 61 8637 926
+  + 91 22 4009 4400                              → +91 9 55 5493 415
+  + 91 8879770456                                → +91 3 602664813
+  + 91 91586 40360                               → +91 6 06066 0784
+  +91 06547 30222                                → +91 69594 92910
+  +91 19 8988 7744                               → +91 57 0717 7353
+  +91 19732 34396                                → +91 60796 67307
+  +91 20 2561 8211                               → +91 66 2680 9835
+  +91 20 2640 3100                               → +91 58 1619 3882
+  +91 20 6606 4494                               → +91 59 4878 1299
+  +91 20 6769 4648                               → +91 14 8470 6874
+  +91 20 7157 6403                               → +91 23 9476 8747
+  +91 22 30752914                                → +91 83 70690049
+  +91 22 30752928                                → +91 37 19485071
+  +91 22 30752929                                → +91 15 78744101
+  +91 22 4009 4400                               → +91 56 9292 7865
+  +91 22 40094400                                → +91 43 58424660
+  +91 22 4079 1000                               → +91 29 0154 0224
+  +91 22 6807 7100                               → +91 19 8988 7744
+  +91 3 34 8690662                               → +91 2 68 4315702
+  +91 41 4208 2688                               → +91 63 2089 9385
+  +91 43 58424660                                → +91 98 94345646
+  +91 54657 71106                                → +91 19732 34396
+  +91 56 9292 7865                               → +91 28 4724 9913
+  +91 57 0717 7353                               → +91 41 4208 2688
+  +91 60796 67307                                → +91 06547 30222
+  +91 69594 92910                                → +91 14210 78409
+  +91 81081 14949                                → +91 54657 71106
+  +91-20-26234000                                → +91 1402737230
+  022-68052182                                   → 67545368264
+  163, 5th Floor, H.T.Parekh Marg Backbay Recla  → 73826 Frederick Brook Suite 593, South Thomas, PR 28962
+  3 Prabhat Road, opposite PYC basketball court  → 2687 Zoe Street Apt. 368, West Stevenmouth, TX 60413
+  602, Gopalkrupa Apartment, Bhonde colony, Pra  → 96218 Wagner Freeway Suite 754, Michaelland, TX 45658
+  801 - 804, Wing A, Building No 3, Inspire BKC  → 1166 Davis Lights Apt. 299, Mccormickside, VA 76251
+  A-259, JK Road, Minal Residency, Huzur, Govin  → 066 Dana Mill Apt. 086, West Michaelfurt, NY 52701
+  A29, Abhimanshree Society, Pashan Road, Pune   → 19382 Jones Haven, Fritzchester, GA 84988
+  ADAS                                           → Anderson-Sullivan
+  ... and 608 more replacements
+
+================================================================================
+END OF REPORT
+================================================================================
