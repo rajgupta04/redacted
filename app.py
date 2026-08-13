@@ -1087,7 +1087,13 @@ async def serve_gui():
                 }
                 else if (job.status === "completed") {
                     currentFileId = job.result.file_id;
+                    originalFileName = job.result.filename; // Make sure original filename is set properly
                     rawEntities = job.result.entities;
+                    sessionStorage.setItem('redactSession', JSON.stringify({
+                        currentFileId: currentFileId,
+                        originalFileName: originalFileName,
+                        rawEntities: rawEntities
+                    }));
                     renderDashboard(job.result.filename);
                 }
                 else if (job.status === "failed") {
@@ -1258,6 +1264,7 @@ async def serve_gui():
 
         function resetApp() {
             closeAlert();
+            sessionStorage.removeItem('redactSession');
             currentFileId = "";
             originalFileName = "";
             rawEntities = [];
@@ -1274,6 +1281,25 @@ async def serve_gui():
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
+
+        // Restore session on page refresh
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = sessionStorage.getItem('redactSession');
+            if (saved) {
+                try {
+                    const session = JSON.parse(saved);
+                    currentFileId = session.currentFileId;
+                    originalFileName = session.originalFileName;
+                    rawEntities = session.rawEntities;
+                    if (currentFileId && rawEntities.length > 0) {
+                        document.getElementById('uploadStage').style.display = 'none';
+                        renderDashboard(originalFileName);
+                    }
+                } catch(e) {
+                    console.error("Failed to restore session", e);
+                }
+            }
+        });
     </script>
 </body>
 </html>
