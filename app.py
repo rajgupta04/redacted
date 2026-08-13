@@ -74,23 +74,26 @@ def extract_pii_counts(doc_path: str) -> Dict[tuple, int]:
             key = (ent.original_text, ent.entity_type)
             entity_counts[key] = entity_counts.get(key, 0) + 1
 
-    # Paragraphs
-    for p in doc.paragraphs:
+    # Body Paragraphs
+    for i, p in enumerate(doc.paragraphs):
         process_text(p.text)
+        if i % 5 == 0: time.sleep(0.001)  # Yield GIL to prevent event loop freezing
 
     # Tables
-    for table in doc.tables:
+    for i, table in enumerate(doc.tables):
         for row in table.rows:
             for cell in row.cells:
                 for p in cell.paragraphs:
                     process_text(p.text)
+        if i % 2 == 0: time.sleep(0.001)  # Yield GIL
 
     # Headers & Footers
-    for section in doc.sections:
+    for i, section in enumerate(doc.sections):
         for hf in [section.header, section.footer]:
             if hf is not None:
                 for p in hf.paragraphs:
                     process_text(p.text)
+        time.sleep(0.001)  # Yield GIL
 
     return entity_counts
 

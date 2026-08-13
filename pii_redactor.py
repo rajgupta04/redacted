@@ -1194,6 +1194,8 @@ class PIIRedactionEngine:
                 entities = self.pipeline.detect_all(para.text)
                 if entities:
                     redactor.redact_paragraph(para, entities)
+            if (i + 1) % 5 == 0:
+                import time; time.sleep(0.001) # Yield GIL
             if (i + 1) % 100 == 0:
                 logger.info(f"  Processed {i + 1}/{para_count} paragraphs")
 
@@ -1207,6 +1209,8 @@ class PIIRedactionEngine:
                             entities = self.pipeline.detect_all(para.text)
                             if entities:
                                 redactor.redact_paragraph(para, entities)
+            if (t_idx + 1) % 2 == 0:
+                import time; time.sleep(0.001) # Yield GIL
             if (t_idx + 1) % 10 == 0:
                 logger.info(f"  Processed {t_idx + 1}/{len(doc.tables)} tables")
 
