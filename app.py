@@ -196,6 +196,10 @@ async def analyze_docx(
         with open(temp_input_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
+        # Estimate processing time based on file size (~10 seconds per 100KB)
+        size_kb = os.path.getsize(temp_input_path) / 1024
+        est_seconds = max(5, int(size_kb / 10))
+
         # Create user job
         user_job_id = str(uuid.uuid4())
         jobs_db[user_job_id] = {
@@ -204,7 +208,8 @@ async def analyze_docx(
             "progress": "Waiting in queue...",
             "temp_file_id": file_id,
             "temp_input_path": str(temp_input_path),
-            "type": "actual"
+            "type": "actual",
+            "est_seconds": est_seconds
         }
 
         # If simulate_traffic is true, add 2 fake jobs ahead of the user
@@ -216,7 +221,8 @@ async def analyze_docx(
                         "status": JobStatus.QUEUED,
                         "filename": f"document_batch_{i+1}.docx",
                         "progress": "Waiting in queue...",
-                        "type": "simulated"
+                        "type": "simulated",
+                        "est_seconds": 3
                     }
                     jobs_queue.append(fake_id)
             
@@ -256,7 +262,8 @@ async def get_job_status(job_id: str):
         "position": position,
         "progress": job.get("progress"),
         "result": job.get("result"),
-        "error": job.get("error")
+        "error": job.get("error"),
+        "est_seconds": job.get("est_seconds", 5)
     }
 
 
@@ -1021,6 +1028,7 @@ async def serve_gui():
 
         function uploadFile(file) {
             closeAlert();
+            window.activeWaitTime = null; // Reset live countdown state
             originalFileName = file.name;
             document.getElementById('uploadStage').style.display = 'none';
             document.getElementById('loadingStage').style.display = 'block';
@@ -1069,7 +1077,7 @@ async def serve_gui():
                     document.getElementById('loadingTitle').innerText = "Waiting in Server Queue...";
                     document.getElementById('queueStatus').style.display = 'block';
                     document.getElementById('queuePosition').innerText = `${job.position}`;
-                    document.getElementById('queueWait').innerText = job.position * 3; // 3 seconds per position estimate
+                    document.getElementById('queueWait').innerText = job.position * (job.est_seconds || 5);
                     document.getElementById('loadingDesc').innerText = "The server is currently busy processing other documents in the queue. Your document will be analyzed automatically when it reaches the front.";
 
                     // Poll again in 1 second
@@ -1079,7 +1087,14 @@ async def serve_gui():
                     document.getElementById('loadingTitle').innerText = "Processing Document...";
                     document.getElementById('queueStatus').style.display = 'block';
                     document.getElementById('queuePosition').innerText = "Active";
-                    document.getElementById('queueWait').innerText = "< 5"; // Hardcoded estimate for demo docs
+                    
+                    if (window.activeWaitTime === null || window.activeWaitTime === undefined) {
+                        window.activeWaitTime = job.est_seconds || 5;
+                    } else {
+                        window.activeWaitTime = Math.max(1, window.activeWaitTime - 1);
+                    }
+                    document.getElementById('queueWait').innerText = window.activeWaitTime;
+
                     document.getElementById('loadingDesc').innerText = job.progress || "Running AI Entity Detection on paragraphs and tables...";
 
                     // Poll again in 1 second
