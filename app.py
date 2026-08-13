@@ -828,6 +828,75 @@ async def serve_gui():
         }
 
         .alert-close:hover { opacity: 1; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 15, 25, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--border-base);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            animation: fadeIn 0.2s ease-out;
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            color: var(--text);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .modal-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .btn-modal-cancel {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            border: 1px solid var(--border-base);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-modal-cancel:hover { background: rgba(255, 255, 255, 0.1); }
+        .btn-modal-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-modal-danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -946,7 +1015,7 @@ async def serve_gui():
                 </div>
 
                 <div class="panel-footer">
-                    <button class="btn-cancel" onclick="resetApp()">Cancel</button>
+                    <button class="btn-cancel" onclick="showResetModal()">Cancel</button>
                     <button class="btn-redact" onclick="submitRedaction()">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                         Redact & Download Document
@@ -960,6 +1029,18 @@ async def serve_gui():
             <p style="margin-top: 0.75rem; font-size: 0.8rem; color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 0.5rem 1rem; border-radius: 6px; display: inline-block; border: 1px solid rgba(239, 68, 68, 0.2);">⚠️ <b>Notice:</b> Taking this project without consent is strictly prohibited. This is an official student assignment project.</p>
         </div>
     </main>
+
+    <!-- Reset Confirmation Modal -->
+    <div class="modal-overlay" id="resetModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Reset Document?</h3>
+            <p class="modal-desc">Are you sure you want to discard your current document and all detected PII? You will need to upload it again to start over.</p>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="closeResetModal()">Go Back</button>
+                <button class="btn-modal-danger" onclick="confirmReset()">Yes, Reset</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         let currentFileId = "";
@@ -1286,6 +1367,20 @@ async def serve_gui():
             document.getElementById('fileInput').value = "";
             document.getElementById('dashboardStage').style.display = 'none';
             document.getElementById('uploadStage').style.display = 'flex';
+        }
+
+        // Modal Functions
+        function showResetModal() {
+            document.getElementById('resetModal').style.display = 'flex';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = 'none';
+        }
+
+        function confirmReset() {
+            closeResetModal();
+            resetApp();
         }
 
         function escapeHtml(text) {
