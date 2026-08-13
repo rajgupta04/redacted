@@ -261,7 +261,7 @@ async def get_job_status(job_id: str):
 
 
 @app.post("/api/redact-custom", summary="Redact docx using custom user-defined replacement values")
-async def redact_custom(
+def redact_custom(
     payload: RedactRequest,
     background_tasks: BackgroundTasks
 ):
