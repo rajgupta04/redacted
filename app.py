@@ -16,6 +16,7 @@ import tempfile
 import uuid
 import time
 import threading
+import json
 from pathlib import Path
 from typing import List, Dict, Any
 from pydantic import BaseModel
@@ -113,6 +114,34 @@ active_job = None
 queue_lock = threading.Lock()
 
 
+def save_job_state(job_id: str, job_data: dict):
+    try:
+        with open(TEMP_DIR / f"job_{job_id}.json", "w") as f:
+            json.dump(job_data, f)
+    except Exception as e:
+        print(f"Error saving job state: {e}")
+
+def load_job_state(job_id: str) -> dict:
+    try:
+        path = TEMP_DIR / f"job_{job_id}.json"
+        if path.exists():
+            with open(path, "r") as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"Error loading job state: {e}")
+    return None
+
+def update_job(job_id: str, key: str, value: Any):
+    if job_id in jobs_db:
+        jobs_db[job_id][key] = value
+        save_job_state(job_id, jobs_db[job_id])
+
+def update_job_multi(job_id: str, updates: dict):
+    if job_id in jobs_db:
+        jobs_db[job_id].update(updates)
+        save_job_state(job_id, jobs_db[job_id])
+
+
 def worker_loop():
     global active_job
     while True:
@@ -124,14 +153,14 @@ def worker_loop():
 
         if job_id:
             job = jobs_db[job_id]
-            job["status"] = JobStatus.PROCESSING
+            update_job(job_id, "status", JobStatus.PROCESSING)
 
             # Handle simulated delay jobs
             if job.get("type") == "simulated":
-                job["progress"] = "Analyzing document structure (Queue Simulation)..."
+                update_job(job_id, "progress", "Analyzing document structure (Queue Simulation)...")
                 for i in range(3):
                     time.sleep(1)
-                job["status"] = JobStatus.COMPLETED
+                update_job(job_id, "status", JobStatus.COMPLETED)
                 with queue_lock:
                     if active_job == job_id:
                         active_job = None
@@ -140,7 +169,7 @@ def worker_loop():
             # Handle redaction jobs
             if job.get("type") == "redaction":
                 try:
-                    job["progress"] = "Applying redaction replacements to document..."
+                    update_job(job_id, "progress", "Applying redaction replacements to document...")
                     temp_input_path = job["temp_input_path"]
                     temp_output_path = job["temp_output_path"]
 
@@ -150,22 +179,23 @@ def worker_loop():
                         key = (item["original"].lower().strip(), item["type"])
                         engine.anonymizer.cache[key] = item["replacement"]
 
-                    job["progress"] = "Running PII detection & replacement on paragraphs..."
+                    update_job(job_id, "progress", "Running PII detection & replacement on paragraphs...")
                     engine.redact_document(
                         str(temp_input_path),
                         str(temp_output_path),
                         ignored_types=set(job.get("ignored_types", []))
                     )
 
-                    job["progress"] = "Redaction completed!"
-                    job["status"] = JobStatus.COMPLETED
-                    job["result"] = {
-                        "file_id": job["file_id"],
-                        "output_path": str(temp_output_path)
-                    }
+                    update_job_multi(job_id, {
+                        "progress": "Redaction completed!",
+                        "status": JobStatus.COMPLETED,
+                        "result": {
+                            "file_id": job["file_id"],
+                            "output_path": str(temp_output_path)
+                        }
+                    })
                 except Exception as e:
-                    job["status"] = JobStatus.FAILED
-                    job["error"] = str(e)
+                    update_job_multi(job_id, {"status": JobStatus.FAILED, "error": str(e)})
                 finally:
                     with queue_lock:
                         if active_job == job_id:
@@ -174,7 +204,7 @@ def worker_loop():
 
             # Handle actual file analysis job
             try:
-                job["progress"] = "Analyzing document structure & XML styles..."
+                update_job(job_id, "progress", "Analyzing document structure & XML styles...")
                 pii_counts = extract_pii_counts(job["temp_input_path"])
 
                 # Format output suggestions (process PERSON first to seed linked emails)
@@ -190,16 +220,17 @@ def worker_loop():
                     })
                 response_entities.sort(key=lambda x: (x["type"], -x["count"]))
 
-                job["result"] = {
-                    "file_id": job["temp_file_id"],
-                    "filename": job["filename"],
-                    "entities": response_entities
-                }
-                job["status"] = JobStatus.COMPLETED
-                job["progress"] = "Analysis completed!"
+                update_job_multi(job_id, {
+                    "result": {
+                        "file_id": job["temp_file_id"],
+                        "filename": job["filename"],
+                        "entities": response_entities
+                    },
+                    "status": JobStatus.COMPLETED,
+                    "progress": "Analysis completed!"
+                })
             except Exception as e:
-                job["status"] = JobStatus.FAILED
-                job["error"] = str(e)
+                update_job_multi(job_id, {"status": JobStatus.FAILED, "error": str(e)})
                 if "temp_input_path" in job and os.path.exists(job["temp_input_path"]):
                     clean_file(job["temp_input_path"])
             finally:
@@ -252,6 +283,7 @@ async def analyze_docx(
         }
 
         # If simulate_traffic is true, add 2 fake jobs ahead of the user
+        save_job_state(user_job_id, jobs_db[user_job_id])
         with queue_lock:
             if simulate_traffic:
                 for i in range(2):
@@ -263,6 +295,7 @@ async def analyze_docx(
                         "type": "simulated",
                         "est_seconds": 3
                     }
+                    save_job_state(fake_id, jobs_db[fake_id])
                     jobs_queue.append(fake_id)
             
             jobs_queue.append(user_job_id)
@@ -280,10 +313,11 @@ async def analyze_docx(
 
 @app.get("/api/job/{job_id}", summary="Get queue status or results of an analysis job")
 async def get_job_status(job_id: str):
-    if job_id not in jobs_db:
-        raise HTTPException(status_code=404, detail="Job not found.")
-
-    job = jobs_db[job_id]
+    job = jobs_db.get(job_id)
+    if not job:
+        job = load_job_state(job_id)
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found.")
 
     # Calculate queue position
     position = 0
@@ -294,6 +328,10 @@ async def get_job_status(job_id: str):
                 position += 1
         elif active_job == job_id:
             position = 1
+        else:
+            # If loaded from disk and processing, it's likely active on another worker instance
+            if job["status"] in [JobStatus.QUEUED, JobStatus.PROCESSING]:
+                position = 1
 
     return {
         "job_id": job_id,
@@ -337,6 +375,7 @@ async def redact_custom(payload: RedactRequest):
         "progress": "Waiting in queue...",
         "est_seconds": est_seconds,
     }
+    save_job_state(redact_job_id, jobs_db[redact_job_id])
 
     with queue_lock:
         jobs_queue.append(redact_job_id)
