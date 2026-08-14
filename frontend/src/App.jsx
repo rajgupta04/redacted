@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import UploadZone from './components/UploadZone';
 import LoadingQueue from './components/LoadingQueue';
 import Dashboard from './components/Dashboard';
+import RedactStage from './components/RedactStage';
 import ResetModal from './components/ResetModal';
 import AlertBanner from './components/AlertBanner';
 
@@ -10,7 +11,7 @@ import { uploadAndAnalyze, checkJobStatus, submitRedaction, downloadRedactedFile
 
 export default function App() {
   const [simulateTraffic, setSimulateTraffic] = useState(false);
-  const [stage, setStage] = useState('upload'); // 'upload' | 'loading' | 'dashboard'
+  const [stage, setStage] = useState('upload'); // 'upload' | 'loading' | 'dashboard' | 'redacting'
 
   // Job Polling State
   const [currentJobId, setCurrentJobId] = useState('');
@@ -18,7 +19,7 @@ export default function App() {
     status: 'queued',
     position: 1,
     progress: '',
-    estSeconds: 5,
+    estSeconds: 30,
   });
 
   // Document & Entities State
@@ -28,9 +29,11 @@ export default function App() {
   const [replacements, setReplacements] = useState({});
   const [ignoredTypes, setIgnoredTypes] = useState([]);
 
-  // Redaction Submit State
+  // Redaction Stage State
   const [isRedacting, setIsRedacting] = useState(false);
   const [redactionProgress, setRedactionProgress] = useState('');
+  const [isRedactCompleted, setIsRedactCompleted] = useState(false);
+  const [completedRedactJobId, setCompletedRedactJobId] = useState('');
 
   // UI Modals & Alerts
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -82,7 +85,7 @@ export default function App() {
     }
   };
 
-  // Poll Job Status when in loading stage
+  // Poll Analysis Job Status when in loading stage
   useEffect(() => {
     if (stage !== 'loading' || !currentJobId) return;
 
@@ -158,11 +161,13 @@ export default function App() {
     }));
   };
 
-  // Submit Custom Redaction & Download
+  // Submit Custom Redaction & Transition to Redact Video Loading Screen
   const handleSubmitRedaction = async () => {
     setAlert(null);
+    setStage('redacting');
     setIsRedacting(true);
-    setRedactionProgress('Submitting redaction job...');
+    setIsRedactCompleted(false);
+    setRedactionProgress('Submitting redaction job to queue...');
 
     try {
       // Build replacement payload
@@ -180,9 +185,10 @@ export default function App() {
 
       const res = await submitRedaction(currentFileId, payloadReplacements, ignoredTypes);
       const redactJobId = res.job_id;
+      setCompletedRedactJobId(redactJobId);
 
       // Poll redaction job completion
-      setRedactionProgress('Processing redaction in background...');
+      setRedactionProgress('Applying PII replacements to paragraphs & XML runs...');
 
       await new Promise((resolve, reject) => {
         const pollRedact = async () => {
@@ -193,7 +199,7 @@ export default function App() {
             } else if (data.status === 'failed') {
               reject(new Error(data.error || 'Redaction job failed on server.'));
             } else {
-              setRedactionProgress(data.progress || 'Redacting text & XML runs...');
+              setRedactionProgress(data.progress || 'Running PII replacement on document...');
               setTimeout(pollRedact, 1000);
             }
           } catch (e) {
@@ -203,19 +209,27 @@ export default function App() {
         pollRedact();
       });
 
-      // Trigger client download
-      setRedactionProgress('Downloading redacted file...');
-      await downloadRedactedFile(redactJobId, filename);
+      // Redaction finished! Transition to download screen
+      setIsRedactCompleted(true);
+      setRedactionProgress('Redaction completed!');
+    } catch (err) {
+      setAlert({ type: 'error', message: err.message });
+      setStage('dashboard');
+    } finally {
+      setIsRedacting(false);
+    }
+  };
 
+  // Trigger Client Download
+  const handleDownloadFile = async () => {
+    try {
+      await downloadRedactedFile(completedRedactJobId, filename);
       setAlert({
         type: 'success',
         message: 'Success! Your redacted document has been downloaded.',
       });
     } catch (err) {
       setAlert({ type: 'error', message: err.message });
-    } finally {
-      setIsRedacting(false);
-      setRedactionProgress('');
     }
   };
 
@@ -258,6 +272,16 @@ export default function App() {
             onSubmitRedaction={handleSubmitRedaction}
             isRedacting={isRedacting}
             redactionProgress={redactionProgress}
+          />
+        )}
+
+        {stage === 'redacting' && (
+          <RedactStage
+            progress={redactionProgress}
+            isCompleted={isRedactCompleted}
+            onDownload={handleDownloadFile}
+            onBackToDashboard={() => setStage('dashboard')}
+            onStartNewUpload={handleConfirmReset}
           />
         )}
       </main>
