@@ -340,7 +340,7 @@ async def redact_custom(payload: RedactRequest):
 
 
 @app.get("/api/download/{job_id}", summary="Download the redacted document for a completed redaction job")
-async def download_redacted(job_id: str, background_tasks: BackgroundTasks):
+async def download_redacted(job_id: str):
     if job_id not in jobs_db:
         raise HTTPException(status_code=404, detail="Job not found.")
 
@@ -352,16 +352,23 @@ async def download_redacted(job_id: str, background_tasks: BackgroundTasks):
     if not os.path.exists(output_path):
         raise HTTPException(status_code=404, detail="Redacted file not found.")
 
-    file_id = job["file_id"]
-
-    # Register cleanup tasks
-    background_tasks.add_task(clean_file, job["temp_input_path"])
-    background_tasks.add_task(clean_file, output_path)
-    mapping_file = Path(output_path).with_suffix(".mapping.json")
-    background_tasks.add_task(clean_file, str(mapping_file))
+    file_id = job.get("file_id", "document")
 
     return FileResponse(
         path=output_path,
+        filename=f"redacted_{file_id}.docx",
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+
+
+@app.get("/api/download-file/{file_id}", summary="Download the redacted document by file_id directly")
+async def download_redacted_by_file_id(file_id: str):
+    output_path = TEMP_DIR / f"redacted_{file_id}.docx"
+    if not output_path.exists():
+        raise HTTPException(status_code=404, detail="Redacted file not found for this document.")
+
+    return FileResponse(
+        path=str(output_path),
         filename=f"redacted_{file_id}.docx",
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )

@@ -49,9 +49,17 @@ export async function submitRedaction(fileId, replacements, ignoredTypes = []) {
   return await response.json(); // { job_id, status }
 }
 
-export async function downloadRedactedFile(jobId, filename) {
-  const response = await fetch(`/api/download/${jobId}`);
-  if (!response.ok) {
+export async function downloadRedactedFile(jobId, filename, fileId) {
+  let response = null;
+  if (jobId) {
+    response = await fetch(`/api/download/${jobId}`);
+  }
+
+  if ((!response || !response.ok) && fileId) {
+    response = await fetch(`/api/download-file/${fileId}`);
+  }
+
+  if (!response || !response.ok) {
     throw new Error('Failed to download redacted document.');
   }
 

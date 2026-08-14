@@ -229,7 +229,7 @@ export default function App() {
   // Trigger Client Download
   const handleDownloadFile = async () => {
     try {
-      await downloadRedactedFile(completedRedactJobId, filename);
+      await downloadRedactedFile(completedRedactJobId, filename, currentFileId);
       setAlert({
         type: 'success',
         message: 'Success! Your redacted document has been downloaded.',
