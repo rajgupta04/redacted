@@ -1,43 +1,49 @@
 import React from 'react';
+import loadingVideo from '../assets/loading.mp4';
 
 export default function LoadingQueue({ jobStatus }) {
   const { status, position, progress, estSeconds } = jobStatus;
   const isOverdue = estSeconds <= 0;
 
   return (
-    <div className="glass-panel animate-fade-in" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
-      {/* Pulse Loader Ring */}
-      <div style={{ position: 'relative', width: '90px', height: '90px', margin: '0 auto 2rem' }}>
+    <div className="glass-panel animate-fade-in" style={{ padding: '3rem 2rem', textAlign: 'center', maxWidth: '640px', margin: '0 auto' }}>
+      {/* High-Tech Redaction Video Frame (Cropped to hide VEO watermark & side silhouettes) */}
+      <div style={{
+        position: 'relative',
+        width: '100%',
+        height: '240px',
+        margin: '0 auto 1.5rem',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        border: '1px solid rgba(230, 57, 70, 0.4)',
+        boxShadow: '0 0 30px rgba(230, 57, 70, 0.25)',
+        background: '#0a0b10'
+      }}>
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            width: '125%',
+            height: '125%',
+            objectFit: 'cover',
+            position: 'absolute',
+            top: '-12.5%',
+            left: '-12.5%',
+            filter: 'contrast(1.05) brightness(1.02)'
+          }}
+        >
+          <source src={loadingVideo} type="video/mp4" />
+        </video>
+        
+        {/* Ambient Redaction Overlay Glow */}
         <div style={{
           position: 'absolute',
           inset: 0,
-          borderRadius: '50%',
-          border: '2px solid rgba(230, 57, 70, 0.2)',
-          animation: 'pulseGlow 2s infinite ease-in-out'
+          background: 'radial-gradient(circle at center, transparent 40%, rgba(10, 11, 16, 0.6) 100%)',
+          pointerEvents: 'none'
         }} />
-        <div style={{
-          width: '100%',
-          height: '100%',
-          borderRadius: '50%',
-          border: '3px solid transparent',
-          borderTopColor: '#e63946',
-          borderRightColor: '#e63946',
-          animation: 'spin 1.2s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite'
-        }} />
-        <div style={{
-          position: 'absolute',
-          inset: '15px',
-          borderRadius: '50%',
-          background: 'rgba(230, 57, 70, 0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#e63946',
-          fontWeight: '700',
-          fontSize: '1.2rem'
-        }}>
-          AI
-        </div>
       </div>
 
       {/* Title */}
