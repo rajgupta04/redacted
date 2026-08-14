@@ -147,3 +147,20 @@ To demonstrate production-grade system design without deploying expensive cloud 
 
 1. **Model Size vs. Speed**: We selected `en_core_web_sm` (~12MB) combined with regex/heuristics. This runs in seconds on standard CPUs. While a transformer model (`en_core_web_trf`, ~400MB) offers slightly better raw NER, it requires GPU hardware and is 100x slower. Our heuristics bridged the gap, yielding **100% Recall** on the test dataset.
 2. **Recall vs. Precision**: In PII redaction, Recall is critical (0% leakage is the priority). We optimized the pipeline to ensure that all key sensitive elements were captured, accepting that some minor general terms might be over-redacted (False Positives).
+
+---
+
+## 🌐 8. Unified Single-Port Deployment Architecture
+
+To ensure zero-downtime deployment on Microsoft Azure without exposing multiple ports or configuring complex CORS cross-origin policies:
+
+1. **Multi-Stage Docker Pipeline**:
+   - **Stage 1 (Node.js Builder)**: Installs npm dependencies and compiles the React SPA into static bundle assets (`frontend/dist/`).
+   - **Stage 2 (Python Runtime)**: Copies the compiled `dist/` folder into the Python FastAPI container and runs Uvicorn on Port 80.
+2. **FastAPI Static Mount**:
+   - Assets are mounted via `StaticFiles(directory="frontend/dist/assets")` at `/assets`.
+   - Wildcard route `/{full_path:path}` serves `frontend/dist/index.html` for client-side React routing.
+3. **Single Inbound Rule (Azure NSG)**:
+   - Both the React UI (`http://<VM_IP>/`) and REST API endpoints (`http://<VM_IP>/api/*`) operate on **Port 80**.
+   - Eliminates CORS security issues, reduces network latency, and requires only one HTTP inbound security rule on Azure.
+
