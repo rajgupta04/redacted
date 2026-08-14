@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EntityRow from './EntityRow';
 
 export default function Dashboard({
@@ -15,6 +15,13 @@ export default function Dashboard({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter]);
 
   // Stats calculation
   let total = 0;
@@ -39,12 +46,21 @@ export default function Dashboard({
     }
   };
 
-  // Filter entities based on search, type filter, and ignored list
-  const filteredEntities = entities.filter((ent) => {
-    const matchesSearch = ent.original.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'ALL' || ent.type === typeFilter;
-    return matchesSearch && matchesType;
-  });
+  // Filter entities based on search and type filter
+  const filteredEntitiesWithIndex = entities
+    .map((ent, originalIndex) => ({ ...ent, originalIndex }))
+    .filter((ent) => {
+      const matchesSearch = ent.original.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = typeFilter === 'ALL' || ent.type === typeFilter;
+      return matchesSearch && matchesType;
+    });
+
+  // Pagination Math
+  const totalItems = filteredEntitiesWithIndex.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedEntities = filteredEntitiesWithIndex.slice(startIndex, endIndex);
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -171,26 +187,113 @@ export default function Dashboard({
               </tr>
             </thead>
             <tbody>
-              {filteredEntities.length === 0 ? (
+              {paginatedEntities.length === 0 ? (
                 <tr>
                   <td colSpan="4" style={{ textAlign: 'center', color: '#94a3b8', padding: '3rem 1rem' }}>
                     No PII entities match your current search/filter.
                   </td>
                 </tr>
               ) : (
-                filteredEntities.map((ent, idx) => (
-                  <EntityRow
-                    key={idx}
-                    entity={ent}
-                    index={idx}
-                    replacement={replacements[idx] !== undefined ? replacements[idx] : ent.suggested}
-                    onChange={onReplacementChange}
-                    isIgnored={ignoredTypes.includes(ent.type)}
-                  />
-                ))
+                paginatedEntities.map((ent) => {
+                  const origIdx = ent.originalIndex;
+                  return (
+                    <EntityRow
+                      key={origIdx}
+                      entity={ent}
+                      index={origIdx}
+                      replacement={replacements[origIdx] !== undefined ? replacements[origIdx] : ent.suggested}
+                      onChange={onReplacementChange}
+                      isIgnored={ignoredTypes.includes(ent.type)}
+                    />
+                  );
+                })
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Bar */}
+        <div style={{
+          padding: '0.85rem 2rem',
+          background: 'rgba(0, 0, 0, 0.2)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontSize: '0.85rem',
+          color: '#94a3b8'
+        }}>
+          {/* Rows per page selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>Rows per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              style={{
+                background: 'rgba(0, 0, 0, 0.3)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '6px',
+                padding: '0.25rem 0.5rem',
+                color: '#f8fafc',
+                fontSize: '0.85rem',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span style={{ marginLeft: '1rem' }}>
+              Showing {totalItems > 0 ? startIndex + 1 : 0}–{endIndex} of {totalItems} items
+            </span>
+          </div>
+
+          {/* Page Prev/Next Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              style={{
+                background: currentPage === 1 ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.08)',
+                color: currentPage === 1 ? '#64748b' : '#f8fafc',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '6px',
+                padding: '0.35rem 0.85rem',
+                fontSize: '0.85rem',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              &larr; Prev
+            </button>
+
+            <span style={{ color: '#f8fafc', fontWeight: '600' }}>
+              Page {currentPage} of {totalPages}
+            </span>
+
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              style={{
+                background: currentPage === totalPages ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.08)',
+                color: currentPage === totalPages ? '#64748b' : '#f8fafc',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '6px',
+                padding: '0.35rem 0.85rem',
+                fontSize: '0.85rem',
+                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Next &rarr;
+            </button>
+          </div>
         </div>
 
         {/* Footer Actions Bar */}
