@@ -113,6 +113,26 @@ jobs_queue = []
 active_job = None
 queue_lock = threading.Lock()
 
+def recover_jobs_from_disk():
+    print("Recovering pending jobs from disk...")
+    count = 0
+    for path in TEMP_DIR.glob("job_*.json"):
+        try:
+            with open(path, "r") as f:
+                job = json.load(f)
+                if job.get("status") in [JobStatus.QUEUED, JobStatus.PROCESSING]:
+                    job_id = path.stem.replace("job_", "")
+                    job["status"] = JobStatus.QUEUED
+                    job["progress"] = "Recovered from server restart. Resuming..."
+                    jobs_db[job_id] = job
+                    jobs_queue.append(job_id)
+                    save_job_state(job_id, job)
+                    count += 1
+        except Exception as e:
+            print(f"Failed to recover {path}: {e}")
+    print(f"Recovered {count} jobs.")
+
+
 
 def save_job_state(job_id: str, job_data: dict):
     try:
@@ -145,103 +165,107 @@ def update_job_multi(job_id: str, updates: dict):
 def worker_loop():
     global active_job
     while True:
-        job_id = None
-        with queue_lock:
-            if jobs_queue:
-                job_id = jobs_queue.pop(0)
-                active_job = job_id
+        try:
+            job_id = None
+            with queue_lock:
+                if jobs_queue:
+                    job_id = jobs_queue.pop(0)
+                    active_job = job_id
 
-        if job_id:
-            job = jobs_db[job_id]
-            update_job(job_id, "status", JobStatus.PROCESSING)
+            if job_id:
+                job = jobs_db[job_id]
+                update_job(job_id, "status", JobStatus.PROCESSING)
 
-            # Handle simulated delay jobs
-            if job.get("type") == "simulated":
-                update_job(job_id, "progress", "Analyzing document structure (Queue Simulation)...")
-                for i in range(3):
-                    time.sleep(1)
-                update_job(job_id, "status", JobStatus.COMPLETED)
-                with queue_lock:
-                    if active_job == job_id:
-                        active_job = None
-                continue
+                # Handle simulated delay jobs
+                if job.get("type") == "simulated":
+                    update_job(job_id, "progress", "Analyzing document structure (Queue Simulation)...")
+                    for i in range(3):
+                        time.sleep(1)
+                    update_job(job_id, "status", JobStatus.COMPLETED)
+                    with queue_lock:
+                        if active_job == job_id:
+                            active_job = None
+                    continue
 
-            # Handle redaction jobs
-            if job.get("type") == "redaction":
+                # Handle redaction jobs
+                if job.get("type") == "redaction":
+                    try:
+                        update_job(job_id, "progress", "Applying redaction replacements to document...")
+                        temp_input_path = job["temp_input_path"]
+                        temp_output_path = job["temp_output_path"]
+
+                        # Populate anonymizer cache with user's custom replacements
+                        engine.anonymizer.cache = {}
+                        for item in job["replacements"]:
+                            key = (item["original"].lower().strip(), item["type"])
+                            engine.anonymizer.cache[key] = item["replacement"]
+
+                        update_job(job_id, "progress", "Running PII detection & replacement on paragraphs...")
+                        engine.redact_document(
+                            str(temp_input_path),
+                            str(temp_output_path),
+                            ignored_types=set(job.get("ignored_types", []))
+                        )
+
+                        update_job_multi(job_id, {
+                            "progress": "Redaction completed!",
+                            "status": JobStatus.COMPLETED,
+                            "result": {
+                                "file_id": job["file_id"],
+                                "output_path": str(temp_output_path)
+                            }
+                        })
+                    except Exception as e:
+                        update_job_multi(job_id, {"status": JobStatus.FAILED, "error": str(e)})
+                    finally:
+                        with queue_lock:
+                            if active_job == job_id:
+                                active_job = None
+                    continue
+
+                # Handle actual file analysis job
                 try:
-                    update_job(job_id, "progress", "Applying redaction replacements to document...")
-                    temp_input_path = job["temp_input_path"]
-                    temp_output_path = job["temp_output_path"]
+                    update_job(job_id, "progress", "Analyzing document structure & XML styles...")
+                    pii_counts = extract_pii_counts(job["temp_input_path"])
 
-                    # Populate anonymizer cache with user's custom replacements
-                    engine.anonymizer.cache = {}
-                    for item in job["replacements"]:
-                        key = (item["original"].lower().strip(), item["type"])
-                        engine.anonymizer.cache[key] = item["replacement"]
-
-                    update_job(job_id, "progress", "Running PII detection & replacement on paragraphs...")
-                    engine.redact_document(
-                        str(temp_input_path),
-                        str(temp_output_path),
-                        ignored_types=set(job.get("ignored_types", []))
-                    )
+                    # Format output suggestions (process PERSON first to seed linked emails)
+                    sorted_pii_items = sorted(pii_counts.items(), key=lambda x: 0 if x[0][1] == "PERSON" else 1)
+                    response_entities = []
+                    for (orig, t), count in sorted_pii_items:
+                        suggested = engine.anonymizer.get_replacement(orig, t)
+                        response_entities.append({
+                            "original": orig,
+                            "type": t,
+                            "count": count,
+                            "suggested": suggested
+                        })
+                    response_entities.sort(key=lambda x: (x["type"], -x["count"]))
 
                     update_job_multi(job_id, {
-                        "progress": "Redaction completed!",
-                        "status": JobStatus.COMPLETED,
                         "result": {
-                            "file_id": job["file_id"],
-                            "output_path": str(temp_output_path)
-                        }
+                            "file_id": job["temp_file_id"],
+                            "filename": job["filename"],
+                            "entities": response_entities
+                        },
+                        "status": JobStatus.COMPLETED,
+                        "progress": "Analysis completed!"
                     })
                 except Exception as e:
                     update_job_multi(job_id, {"status": JobStatus.FAILED, "error": str(e)})
+                    if "temp_input_path" in job and os.path.exists(job["temp_input_path"]):
+                        clean_file(job["temp_input_path"])
                 finally:
                     with queue_lock:
                         if active_job == job_id:
                             active_job = None
-                continue
+            else:
+                time.sleep(0.5)
+        except Exception as e:
+            print(f"CRITICAL WORKER LOOP ERROR: {e}")
+            time.sleep(1)
 
-            # Handle actual file analysis job
-            try:
-                update_job(job_id, "progress", "Analyzing document structure & XML styles...")
-                pii_counts = extract_pii_counts(job["temp_input_path"])
-
-                # Format output suggestions (process PERSON first to seed linked emails)
-                sorted_pii_items = sorted(pii_counts.items(), key=lambda x: 0 if x[0][1] == "PERSON" else 1)
-                response_entities = []
-                for (orig, t), count in sorted_pii_items:
-                    suggested = engine.anonymizer.get_replacement(orig, t)
-                    response_entities.append({
-                        "original": orig,
-                        "type": t,
-                        "count": count,
-                        "suggested": suggested
-                    })
-                response_entities.sort(key=lambda x: (x["type"], -x["count"]))
-
-                update_job_multi(job_id, {
-                    "result": {
-                        "file_id": job["temp_file_id"],
-                        "filename": job["filename"],
-                        "entities": response_entities
-                    },
-                    "status": JobStatus.COMPLETED,
-                    "progress": "Analysis completed!"
-                })
-            except Exception as e:
-                update_job_multi(job_id, {"status": JobStatus.FAILED, "error": str(e)})
-                if "temp_input_path" in job and os.path.exists(job["temp_input_path"]):
-                    clean_file(job["temp_input_path"])
-            finally:
-                with queue_lock:
-                    if active_job == job_id:
-                        active_job = None
-        else:
-            time.sleep(0.5)
-
-
-# Start the worker thread
+# Recover jobs and start the worker thread
+recover_jobs_from_disk()
 worker_thread = threading.Thread(target=worker_loop, daemon=True)
 worker_thread.start()
 
