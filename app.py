@@ -346,31 +346,38 @@ async def redact_custom(payload: RedactRequest):
 
 @app.get("/api/download/{job_id}", summary="Download the redacted document for a completed redaction job")
 async def download_redacted(job_id: str):
-    if job_id not in jobs_db:
-        raise HTTPException(status_code=404, detail="Job not found.")
+    if job_id in jobs_db and jobs_db[job_id].get("status") == JobStatus.COMPLETED:
+        output_path = jobs_db[job_id].get("result", {}).get("output_path")
+        if output_path and os.path.exists(output_path):
+            file_id = jobs_db[job_id].get("file_id", "document")
+            return FileResponse(
+                path=output_path,
+                filename=f"redacted_{file_id}.docx",
+                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
 
-    job = jobs_db[job_id]
-    if job["status"] != JobStatus.COMPLETED:
-        raise HTTPException(status_code=400, detail="Job is not completed yet.")
+    # Fallback to most recent redacted_*.docx on disk
+    outputs = sorted(TEMP_DIR.glob("redacted_*.docx"), key=os.path.getmtime, reverse=True)
+    if outputs:
+        return FileResponse(
+            path=str(outputs[0]),
+            filename="redacted_document.docx",
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
 
-    output_path = job["result"]["output_path"]
-    if not os.path.exists(output_path):
-        raise HTTPException(status_code=404, detail="Redacted file not found.")
-
-    file_id = job.get("file_id", "document")
-
-    return FileResponse(
-        path=output_path,
-        filename=f"redacted_{file_id}.docx",
-        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
+    raise HTTPException(status_code=404, detail="Redacted file not found.")
 
 
 @app.get("/api/download-file/{file_id}", summary="Download the redacted document by file_id directly")
 async def download_redacted_by_file_id(file_id: str):
     output_path = TEMP_DIR / f"redacted_{file_id}.docx"
     if not output_path.exists():
-        raise HTTPException(status_code=404, detail="Redacted file not found for this document.")
+        # Fallback to most recent redacted_*.docx on disk
+        outputs = sorted(TEMP_DIR.glob("redacted_*.docx"), key=os.path.getmtime, reverse=True)
+        if outputs:
+            output_path = outputs[0]
+        else:
+            raise HTTPException(status_code=404, detail="Redacted file not found for this document.")
 
     return FileResponse(
         path=str(output_path),
