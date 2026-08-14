@@ -1,19 +1,33 @@
 /**
- * API Client helper for PII Redactor Backend
+ * API Client helper for PII Redactor Backend with auto-retry resilience
  */
+
+async function fetchWithRetry(url, options = {}, retries = 3, delayMs = 800) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url, options);
+      return res;
+    } catch (err) {
+      if (i === retries - 1) {
+        throw new Error('Connection interrupted. Please check your network or re-upload your document.');
+      }
+      await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+    }
+  }
+}
 
 export async function uploadAndAnalyze(file, simulateTraffic = false) {
   const formData = new FormData();
   formData.append('file', file);
 
   const url = `/api/analyze?simulate_traffic=${simulateTraffic}`;
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     method: 'POST',
     body: formData,
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const error = await response.json().catch(() => ({}));
     throw new Error(error.detail || 'Failed to submit document for analysis.');
   }
 
@@ -21,7 +35,7 @@ export async function uploadAndAnalyze(file, simulateTraffic = false) {
 }
 
 export async function checkJobStatus(jobId) {
-  const response = await fetch(`/api/job/${jobId}`);
+  const response = await fetchWithRetry(`/api/job/${jobId}`, {}, 2, 500);
   if (!response.ok) {
     throw new Error('Failed to fetch job queue status.');
   }
@@ -29,7 +43,7 @@ export async function checkJobStatus(jobId) {
 }
 
 export async function submitRedaction(fileId, replacements, ignoredTypes = []) {
-  const response = await fetch('/api/redact-custom', {
+  const response = await fetchWithRetry('/api/redact-custom', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -39,11 +53,11 @@ export async function submitRedaction(fileId, replacements, ignoredTypes = []) {
       replacements: replacements,
       ignored_types: ignoredTypes,
     }),
-  });
+  }, 3, 1000);
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Failed to submit redaction job.');
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || 'File session expired or server restarted. Please re-upload document.');
   }
 
   return await response.json(); // { job_id, status }
@@ -52,15 +66,19 @@ export async function submitRedaction(fileId, replacements, ignoredTypes = []) {
 export async function downloadRedactedFile(jobId, filename, fileId) {
   let response = null;
   if (jobId) {
-    response = await fetch(`/api/download/${jobId}`);
+    try {
+      response = await fetchWithRetry(`/api/download/${jobId}`, {}, 2, 500);
+    } catch (e) {
+      // Fallback
+    }
   }
 
   if ((!response || !response.ok) && fileId) {
-    response = await fetch(`/api/download-file/${fileId}`);
+    response = await fetchWithRetry(`/api/download-file/${fileId}`, {}, 2, 500);
   }
 
   if (!response || !response.ok) {
-    throw new Error('Failed to download redacted document.');
+    throw new Error('Redacted document session expired. Please re-run redaction.');
   }
 
   const blob = await response.blob();
