@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import loadingVideo from '../assets/loading.mp4';
+
+const loadingVideo = '/loading.mp4';
 
 export default function RedactStage({
   progress,

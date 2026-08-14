@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import analysingVideo from '../assets/analysing.mp4';
+
+const analysingVideo = '/analysing.mp4';
 
 export default function LoadingQueue({ jobStatus }) {
   const { status, position, progress, estSeconds } = jobStatus;
