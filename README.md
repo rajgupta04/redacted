@@ -17,9 +17,9 @@ This repository is fully containerized and configured for zero-downtime deployme
 
 - **Format-Preserving XML Redaction**: Replaces PII at the OpenXML run-level (`docx.text.run.Run`), ensuring surrounding fonts, bolding, colors, and layout remain completely untouched.
 - **Linked Relational Faking**: Automatically links names to contact information (e.g., `Rashi Patil` and `rashi.patil@gmail.com` are faked intelligently as `John Doe` and `john.doe@gmail.com` to preserve narrative context).
-- **Asynchronous In-Memory Queue**: A lightweight background worker thread processes files sequentially. The client UI polls a status endpoint to view real-time queue position and processing progress (no Redis/Celery required).
+- **Asynchronous In-Memory Queue & Traffic Simulator**: A lightweight background worker thread processes files sequentially. The client UI polls a status endpoint to view real-time queue position and dynamic wait countdowns. Includes a **"Simulate Queue Load"** toggle to test high-concurrency production load handling with live queue countdowns (`#3` &rarr; `#2` &rarr; `#1`).
 - **Domain-Aware AI**: Combines `spaCy` NER (`en_core_web_sm`) with domain-specific re-mapping (e.g., catching false `PERSON` flags on corporate entities with "Limited" or "LLP" suffixes).
-- **Interactive UI Dashboard**: An integrated web interface (FastAPI + Vanilla JS) allows users to review AI-suggested fake replacements and manually override them before downloading the final document.
+- **Interactive React 18 SPA**: Modern crimson-themed single-page app featuring dual HD video loading screens (`analysing.mp4` & `loading.mp4`), table pagination, search filters, and manual replacement overrides before downloading.
 
 ---
 
