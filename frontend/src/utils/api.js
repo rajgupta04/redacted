@@ -1,5 +1,5 @@
 /**
- * API Client helper for PII Redactor Backend with auto-retry resilience
+ * API Client helper for PII Redactor Backend
  */
 
 async function fetchWithRetry(url, options = {}, retries = 3, delayMs = 800) {
@@ -9,7 +9,7 @@ async function fetchWithRetry(url, options = {}, retries = 3, delayMs = 800) {
       return res;
     } catch (err) {
       if (i === retries - 1) {
-        throw new Error('Connection interrupted. Please check your network.');
+        throw new Error('Connection interrupted. Please check your network connection.');
       }
       await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
     }
@@ -35,17 +35,17 @@ export async function uploadAndAnalyze(file, simulateTraffic = false) {
 }
 
 export async function checkJobStatus(jobId) {
-  if (!jobId) return { status: 'processing', progress: 'Processing document...' };
-
-  try {
-    const response = await fetchWithRetry(`/api/job/${jobId}`, {}, 3, 500);
-    if (!response.ok) {
-      return { status: 'processing', progress: 'Processing document...' };
-    }
-    return await response.json();
-  } catch (err) {
-    return { status: 'processing', progress: 'Processing document...' };
+  if (!jobId) {
+    throw new Error('Invalid job ID.');
   }
+
+  const response = await fetchWithRetry(`/api/job/${jobId}`, {}, 3, 500);
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || 'Failed to fetch job status.');
+  }
+
+  return await response.json();
 }
 
 export async function submitRedaction(fileId, replacements, ignoredTypes = []) {
@@ -63,7 +63,7 @@ export async function submitRedaction(fileId, replacements, ignoredTypes = []) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.detail || 'Redaction job submission failed. Please try again.');
+    throw new Error(error.detail || 'Redaction job submission failed.');
   }
 
   return await response.json(); // { job_id, status }
