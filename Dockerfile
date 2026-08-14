@@ -1,13 +1,19 @@
-# Use an official Python runtime as a parent image
+# Stage 1: Build React Frontend
+FROM node:20-slim AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 2: Python Backend Runtime
 FROM python:3.11-slim
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=80
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Set work directory
 WORKDIR /app
 
 # Install system dependencies required for lxml compilation
@@ -23,11 +29,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Download the spaCy language model
 RUN python -m spacy download en_core_web_sm
 
-# Copy the project files into the container
+# Copy project source code
 COPY . /app/
 
-# Expose the port the app runs on
+# Copy compiled React static assets from Stage 1
+COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
+
 EXPOSE 80
 
-# Command to run the application using Uvicorn
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80", "--timeout-keep-alive", "120"]
