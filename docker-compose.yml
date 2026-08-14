@@ -8,3 +8,8 @@ services:
     environment:
       - PORT=80
     restart: always
+    volumes:
+      - pii_cache:/app/tmp_cache
+
+volumes:
+  pii_cache:

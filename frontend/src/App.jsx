@@ -192,7 +192,18 @@ export default function App() {
         })
         .filter(Boolean);
 
-      const res = await submitRedaction(currentFileId, payloadReplacements, ignoredTypes);
+      let activeFileId = currentFileId;
+      if (!activeFileId) {
+        const saved = sessionStorage.getItem('redactSession');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            activeFileId = parsed.currentFileId;
+          } catch (e) {}
+        }
+      }
+
+      const res = await submitRedaction(activeFileId, payloadReplacements, ignoredTypes);
       const redactJobId = res.job_id;
       setCompletedRedactJobId(redactJobId);
 

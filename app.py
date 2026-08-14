@@ -313,7 +313,12 @@ async def redact_custom(payload: RedactRequest):
     temp_output_path = TEMP_DIR / f"redacted_{file_id}.docx"
 
     if not temp_input_path.exists():
-        raise HTTPException(status_code=404, detail="File session expired or not found. Please upload again.")
+        # Fallback to most recent input docx in TEMP_DIR if file_id stutters
+        inputs = sorted(TEMP_DIR.glob("input_*.docx"), key=os.path.getmtime, reverse=True)
+        if inputs:
+            temp_input_path = inputs[0]
+        else:
+            raise HTTPException(status_code=404, detail="File session expired. Please re-upload document.")
 
     # Estimate processing time based on file size
     size_kb = os.path.getsize(temp_input_path) / 1024
