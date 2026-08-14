@@ -2,6 +2,7 @@ import React from 'react';
 
 export default function LoadingQueue({ jobStatus }) {
   const { status, position, progress, estSeconds } = jobStatus;
+  const isOverdue = estSeconds <= 0;
 
   return (
     <div className="glass-panel animate-fade-in" style={{ padding: '4rem 2rem', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
@@ -44,8 +45,18 @@ export default function LoadingQueue({ jobStatus }) {
         {status === 'queued' ? 'Waiting in Server Queue...' : 'Processing Document...'}
       </h3>
 
-      <p style={{ color: '#94a3b8', fontSize: '0.95rem', marginBottom: '2rem', minHeight: '3rem' }}>
-        {progress || 'Running AI Entity Detection on paragraphs and tables...'}
+      {/* Progress Description & Overdue Notice */}
+      <p style={{
+        color: isOverdue ? '#fbbf24' : '#94a3b8',
+        fontSize: '0.95rem',
+        marginBottom: '2rem',
+        minHeight: '3rem',
+        fontWeight: isOverdue ? '600' : '400',
+        transition: 'all 0.3s ease'
+      }}>
+        {isOverdue
+          ? '⚠️ It is taking longer than expected, please wait a while...'
+          : (progress || 'Running AI Entity Detection on paragraphs and tables...')}
       </p>
 
       {/* Queue Info Cards */}
@@ -71,8 +82,13 @@ export default function LoadingQueue({ jobStatus }) {
           <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Est. Wait Time
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: '700', color: '#e63946', marginTop: '0.2rem' }}>
-            ~{estSeconds} sec
+          <div style={{
+            fontSize: '1.4rem',
+            fontWeight: '700',
+            color: isOverdue ? '#fbbf24' : '#e63946',
+            marginTop: '0.2rem'
+          }}>
+            {isOverdue ? 'Finalizing...' : `~${estSeconds} sec`}
           </div>
         </div>
       </div>

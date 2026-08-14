@@ -61,7 +61,7 @@ export default function App() {
     }
   }, []);
 
-  // Handle File Upload
+  // Handle File Select
   const handleFileSelect = async (file) => {
     setAlert(null);
     setStage('loading');
@@ -70,7 +70,7 @@ export default function App() {
       status: 'queued',
       position: 1,
       progress: 'Submitting file to server...',
-      estSeconds: 5,
+      estSeconds: 30,
     });
 
     try {
@@ -93,18 +93,18 @@ export default function App() {
         const data = await checkJobStatus(currentJobId);
 
         if (data.status === 'queued') {
-          setJobStatus({
+          setJobStatus((prev) => ({
             status: 'queued',
             position: data.position,
             progress: 'The server is processing queue tasks...',
-            estSeconds: data.position * (data.est_seconds || 5),
-          });
+            estSeconds: Math.max(0, prev.estSeconds - 1),
+          }));
         } else if (data.status === 'processing') {
           setJobStatus((prev) => ({
             status: 'processing',
             position: 1,
             progress: data.progress || 'Running AI Entity Detection...',
-            estSeconds: Math.max(1, (prev.estSeconds || data.est_seconds || 5) - 1),
+            estSeconds: Math.max(0, prev.estSeconds - 1),
           }));
         } else if (data.status === 'completed') {
           const result = data.result;
