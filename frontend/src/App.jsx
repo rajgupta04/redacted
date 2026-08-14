@@ -90,15 +90,16 @@ export default function App() {
     if (stage !== 'loading' || !currentJobId) return;
 
     let countdownTimer = null;
+    let consecutivePollErrors = 0;
 
     const poll = async () => {
       try {
         const data = await checkJobStatus(currentJobId);
+        consecutivePollErrors = 0; // Reset error counter on successful poll
 
         if (data.status === 'queued') {
           const queuePos = Math.max(1, data.position || 1);
           setJobStatus((prev) => {
-            // If position changed, recalculate dynamic wait time = pos * 30s
             const initialPosWait = queuePos * 30;
             const newEstSeconds = prev.position !== queuePos ? initialPosWait : Math.max(0, prev.estSeconds - 1);
             return {
@@ -121,14 +122,12 @@ export default function App() {
           setFilename(result.filename);
           setEntities(result.entities);
 
-          // Initialize replacement map
           const initialMap = {};
           result.entities.forEach((ent, idx) => {
             initialMap[idx] = ent.suggested;
           });
           setReplacements(initialMap);
 
-          // Save to sessionStorage for page refresh persistence
           sessionStorage.setItem(
             'redactSession',
             JSON.stringify({
@@ -144,11 +143,15 @@ export default function App() {
           throw new Error(data.error || 'Document analysis failed.');
         }
 
-        // Schedule next poll in 1s
         countdownTimer = setTimeout(poll, 1000);
       } catch (err) {
-        setAlert({ type: 'error', message: err.message });
-        setStage('upload');
+        consecutivePollErrors++;
+        if (consecutivePollErrors < 4) {
+          countdownTimer = setTimeout(poll, 1500);
+        } else {
+          setAlert({ type: 'error', message: err.message });
+          setStage('upload');
+        }
       }
     };
 

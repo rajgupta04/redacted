@@ -35,9 +35,15 @@ export async function uploadAndAnalyze(file, simulateTraffic = false) {
 }
 
 export async function checkJobStatus(jobId) {
-  const response = await fetchWithRetry(`/api/job/${jobId}`, {}, 2, 500);
+  if (!jobId) {
+    throw new Error('Session expired. Please re-upload your document.');
+  }
+  const response = await fetchWithRetry(`/api/job/${jobId}`, {}, 3, 600);
   if (!response.ok) {
-    throw new Error('Failed to fetch job queue status.');
+    if (response.status === 404) {
+      throw new Error('Analysis session expired. Please re-upload your document.');
+    }
+    throw new Error('Server connection interrupted. Please try again.');
   }
   return await response.json();
 }
