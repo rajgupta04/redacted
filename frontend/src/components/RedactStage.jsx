@@ -10,7 +10,7 @@ export default function RedactStage({
   onStartNewUpload,
 }) {
   const videoRef = useRef(null);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Default to muted for office/quiet environment safety
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
   useEffect(() => {
