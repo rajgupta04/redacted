@@ -223,17 +223,7 @@ export default function App() {
       setRedactionProgress('Redaction completed!');
     } catch (err) {
       setAlert({ type: 'error', message: err.message });
-      if (err.message.toLowerCase().includes('expired')) {
-        sessionStorage.removeItem('redactSession');
-        setCurrentFileId('');
-        setFilename('');
-        setEntities([]);
-        setReplacements({});
-        setIgnoredTypes([]);
-        setStage('upload');
-      } else {
-        setStage('dashboard');
-      }
+      setStage('dashboard');
     } finally {
       setIsRedacting(false);
     }
