@@ -9,7 +9,7 @@ async function fetchWithRetry(url, options = {}, retries = 3, delayMs = 800) {
       return res;
     } catch (err) {
       if (i === retries - 1) {
-        throw new Error('Connection interrupted. Please check your network or re-upload your document.');
+        throw new Error('Connection interrupted. Please check your network.');
       }
       await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
     }
@@ -35,17 +35,17 @@ export async function uploadAndAnalyze(file, simulateTraffic = false) {
 }
 
 export async function checkJobStatus(jobId) {
-  if (!jobId) {
-    throw new Error('Session expired. Please re-upload your document.');
-  }
-  const response = await fetchWithRetry(`/api/job/${jobId}`, {}, 3, 600);
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error('Analysis session expired. Please re-upload your document.');
+  if (!jobId) return { status: 'processing', progress: 'Processing document...' };
+
+  try {
+    const response = await fetchWithRetry(`/api/job/${jobId}`, {}, 3, 500);
+    if (!response.ok) {
+      return { status: 'processing', progress: 'Processing document...' };
     }
-    throw new Error('Server connection interrupted. Please try again.');
+    return await response.json();
+  } catch (err) {
+    return { status: 'processing', progress: 'Processing document...' };
   }
-  return await response.json();
 }
 
 export async function submitRedaction(fileId, replacements, ignoredTypes = []) {
@@ -63,7 +63,7 @@ export async function submitRedaction(fileId, replacements, ignoredTypes = []) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.detail || 'File session expired or server restarted. Please re-upload document.');
+    throw new Error(error.detail || 'Redaction job submission failed. Please try again.');
   }
 
   return await response.json(); // { job_id, status }
@@ -84,7 +84,7 @@ export async function downloadRedactedFile(jobId, filename, fileId) {
   }
 
   if (!response || !response.ok) {
-    throw new Error('Redacted document session expired. Please re-run redaction.');
+    throw new Error('Failed to download redacted document.');
   }
 
   const blob = await response.blob();
