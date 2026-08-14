@@ -96,18 +96,24 @@ export default function App() {
         const data = await checkJobStatus(currentJobId);
 
         if (data.status === 'queued') {
-          setJobStatus((prev) => ({
-            status: 'queued',
-            position: data.position,
-            progress: 'The server is processing queue tasks...',
-            estSeconds: Math.max(0, prev.estSeconds - 1),
-          }));
+          const queuePos = Math.max(1, data.position || 1);
+          setJobStatus((prev) => {
+            // If position changed, recalculate dynamic wait time = pos * 30s
+            const initialPosWait = queuePos * 30;
+            const newEstSeconds = prev.position !== queuePos ? initialPosWait : Math.max(0, prev.estSeconds - 1);
+            return {
+              status: 'queued',
+              position: queuePos,
+              progress: `Document is queued at position #${queuePos}...`,
+              estSeconds: newEstSeconds,
+            };
+          });
         } else if (data.status === 'processing') {
           setJobStatus((prev) => ({
             status: 'processing',
             position: 1,
             progress: data.progress || 'Running AI Entity Detection...',
-            estSeconds: Math.max(0, prev.estSeconds - 1),
+            estSeconds: prev.status === 'processing' ? Math.max(0, prev.estSeconds - 1) : 30,
           }));
         } else if (data.status === 'completed') {
           const result = data.result;
