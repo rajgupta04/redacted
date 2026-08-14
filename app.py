@@ -40,7 +40,7 @@ pipeline = PIIDetectionPipeline()
 print("Engine ready!")
 
 # Temporary file storage directory
-TEMP_DIR = Path(tempfile.gettempdir()) / "pii_redactor_cache"
+TEMP_DIR = Path(__file__).parent / "tmp_cache"
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 class ReplacementItem(BaseModel):
