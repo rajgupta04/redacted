@@ -278,6 +278,8 @@ export default function App() {
             onSubmitRedaction={handleSubmitRedaction}
             isRedacting={isRedacting}
             redactionProgress={redactionProgress}
+            hasRedactedFile={isRedactCompleted && !!completedRedactJobId}
+            onDownloadFile={handleDownloadFile}
           />
         )}
 

@@ -11,7 +11,9 @@ export default function Dashboard({
   onOpenResetModal,
   onSubmitRedaction,
   isRedacting,
-  redactionProgress
+  redactionProgress,
+  hasRedactedFile,
+  onDownloadFile
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
@@ -74,6 +76,20 @@ export default function Dashboard({
             {filename}
           </h2>
         </div>
+
+        {hasRedactedFile && (
+          <div style={{
+            padding: '0.4rem 1rem',
+            borderRadius: '20px',
+            background: 'rgba(16, 185, 129, 0.12)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            color: '#34d399',
+            fontSize: '0.8rem',
+            fontWeight: '600'
+          }}>
+            ✓ Redacted Version Ready
+          </div>
+        )}
       </div>
 
       {/* Stats Cards Grid */}
@@ -309,27 +325,47 @@ export default function Dashboard({
             Cancel
           </button>
 
-          <button
-            onClick={onSubmitRedaction}
-            disabled={isRedacting || entities.length === 0}
-            className="btn-primary"
-          >
-            {isRedacting ? (
-              <>
-                <div className="spinner" />
-                {redactionProgress || 'Processing...'}
-              </>
-            ) : (
-              <>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            {hasRedactedFile && (
+              <button
+                onClick={onDownloadFile}
+                className="btn-primary"
+                style={{
+                  background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
+                  boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
+                }}
+              >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                Redact & Download Document
-              </>
+                Download Redacted Document
+              </button>
             )}
-          </button>
+
+            <button
+              onClick={onSubmitRedaction}
+              disabled={isRedacting || entities.length === 0}
+              className={hasRedactedFile ? 'btn-secondary' : 'btn-primary'}
+            >
+              {isRedacting ? (
+                <>
+                  <div className="spinner" />
+                  {redactionProgress || 'Processing...'}
+                </>
+              ) : (
+                <>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  {hasRedactedFile ? 'Re-Run Redaction' : 'Redact & Download Document'}
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
