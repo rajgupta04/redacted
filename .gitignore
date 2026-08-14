@@ -20,5 +20,13 @@ tmp/
 # macOS
 .DS_Store
 
+# Node.js / React
+node_modules/
+dist/
+frontend/node_modules/
+frontend/dist/
+
 # Internal Notes
 explanation.md
+test_out.mapping.json
+
