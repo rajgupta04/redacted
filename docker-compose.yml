@@ -8,10 +8,6 @@ services:
     environment:
       - PORT=80
     restart: always
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:80/')"]
-      interval: 30s
-      timeout: 15s
-      retries: 3
     volumes:
       - ./tmp:/tmp
+
