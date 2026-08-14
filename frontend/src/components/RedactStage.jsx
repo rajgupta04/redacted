@@ -10,6 +10,7 @@ export default function RedactStage({
 }) {
   const videoRef = useRef(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
   useEffect(() => {
     if (!isCompleted && videoRef.current) {
@@ -37,7 +38,7 @@ export default function RedactStage({
     <div className="glass-panel animate-fade-in" style={{ padding: '3.5rem 2rem', textAlign: 'center', maxWidth: '640px', margin: '0 auto' }}>
       {!isCompleted ? (
         <>
-          {/* High-Tech Redaction Video Frame */}
+          {/* High-Tech Redaction Video Frame with Slow Internet Fallback */}
           <div style={{
             position: 'relative',
             width: '100%',
@@ -47,13 +48,53 @@ export default function RedactStage({
             overflow: 'hidden',
             border: '1px solid rgba(230, 57, 70, 0.4)',
             boxShadow: '0 0 30px rgba(230, 57, 70, 0.25)',
-            background: '#0a0b10'
+            background: '#0a0b10',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
+            {/* Slow Internet Buffering Fallback Loader */}
+            {!isVideoLoaded && (
+              <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto' }}>
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '50%',
+                  border: '2px solid rgba(230, 57, 70, 0.2)',
+                  animation: 'pulseGlow 2s infinite ease-in-out'
+                }} />
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  border: '3px solid transparent',
+                  borderTopColor: '#e63946',
+                  borderRightColor: '#e63946',
+                  animation: 'spin 1.2s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite'
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  inset: '12px',
+                  borderRadius: '50%',
+                  background: 'rgba(230, 57, 70, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#e63946',
+                  fontWeight: '700',
+                  fontSize: '1.1rem'
+                }}>
+                  AI
+                </div>
+              </div>
+            )}
+
             <video
               ref={videoRef}
               autoPlay
               loop
               playsInline
+              onCanPlay={() => setIsVideoLoaded(true)}
               style={{
                 width: '125%',
                 height: '125%',
@@ -61,7 +102,9 @@ export default function RedactStage({
                 position: 'absolute',
                 top: '-12.5%',
                 left: '-12.5%',
-                filter: 'contrast(1.05) brightness(1.02)'
+                filter: 'contrast(1.05) brightness(1.02)',
+                opacity: isVideoLoaded ? 1 : 0,
+                transition: 'opacity 0.5s ease'
               }}
             >
               <source src={loadingVideo} type="video/mp4" />
@@ -76,41 +119,43 @@ export default function RedactStage({
             }} />
 
             {/* Audio Mute/Unmute Toggle */}
-            <button
-              onClick={toggleSound}
-              title={isMuted ? 'Unmute Sound' : 'Mute Sound'}
-              style={{
-                position: 'absolute',
-                top: '12px',
-                right: '12px',
-                background: 'rgba(10, 11, 16, 0.7)',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '50%',
-                width: '36px',
-                height: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#f8fafc',
-                cursor: 'pointer',
-                zIndex: 10,
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {isMuted ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                  <line x1="23" y1="9" x2="17" y2="15" />
-                  <line x1="17" y1="9" x2="23" y2="15" />
-                </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e63946" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                </svg>
-              )}
-            </button>
+            {isVideoLoaded && (
+              <button
+                onClick={toggleSound}
+                title={isMuted ? 'Unmute Sound' : 'Mute Sound'}
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  background: 'rgba(10, 11, 16, 0.7)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#f8fafc',
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {isMuted ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <line x1="23" y1="9" x2="17" y2="15" />
+                    <line x1="17" y1="9" x2="23" y2="15" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e63946" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                  </svg>
+                )}
+              </button>
+            )}
           </div>
 
           <h3 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f8fafc', marginBottom: '0.5rem' }}>
