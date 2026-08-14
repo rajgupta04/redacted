@@ -11,7 +11,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
 
 
-
 # Install Python dependencies
 COPY requirements.txt /app/
 RUN pip install --upgrade pip
@@ -27,4 +26,4 @@ COPY . /app/
 EXPOSE 80
 
 # Command to run the application using Uvicorn
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80", "--timeout-keep-alive", "120"]
