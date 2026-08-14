@@ -302,18 +302,6 @@ export default function App() {
       {/* Student Notice Footer */}
       <footer style={{ textStyle: 'center', textAlign: 'center', marginTop: '3rem', paddingBottom: '2rem', color: '#64748b', fontSize: '0.85rem' }}>
         <p>Submitted by <strong>Raj Gupta</strong> &bull; <a href="mailto:rajgupta8340@gmail.com" style={{ color: '#e63946', textDecoration: 'none' }}>rajgupta8340@gmail.com</a></p>
-        <p style={{
-          marginTop: '0.75rem',
-          fontSize: '0.8rem',
-          color: '#ff4d5e',
-          background: 'rgba(230, 57, 70, 0.1)',
-          padding: '0.5rem 1rem',
-          borderRadius: '6px',
-          display: 'inline-block',
-          border: '1px solid rgba(230, 57, 70, 0.2)'
-        }}>
-          ⚠️ <b>Notice:</b> Taking this project without consent is strictly prohibited. This is an official student assignment project.
-        </p>
       </footer>
     </div>
   );
